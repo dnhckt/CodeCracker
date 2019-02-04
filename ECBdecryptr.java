@@ -65,7 +65,7 @@ public class ECBdecryptr {
         // To store decrypted message 
         char[] plainTwo = new char[cipherTwo.length()]; 
         
-        // Convert second cipher into plainOne
+        // Convert second cipher into plainOne (Decrypt)
         for (int i=0; i < cipherTwo.length(); i++) // Cycle through length of plainOne
         {
             for (int j=0; j < 26; j++) 
@@ -80,10 +80,10 @@ public class ECBdecryptr {
 
         // Convert chars to string and print decrypted message
         String plainTwoString = new String(plainTwo);
-        // System.out.println(plainTwoString);
-        // for (int j=0; j < 26; j++)
-        // {
-        //     System.out.println(ALPHABET.charAt(j) + " -> " + cipherKey[j]);
-        // }
+        System.out.println(plainTwoString);
+        for (int j=0; j < 26; j++)
+        {
+            System.out.println(ALPHABET.charAt(j) + " -> " + cipherKey[j]);
+        }
     }   
 }
