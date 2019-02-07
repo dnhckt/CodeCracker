@@ -4,16 +4,36 @@ import java.nio.file.Paths;
 
 /*
     Author: Aidan Hackett
-    Decrypts an ECB encrypted cipher from a plaintext and cipher file with the same key 
+    Decrypts a CBC encrypted cipher from a plaintext, cipher file and iv with the same key and a different iv
 
      javac CBCdecryptr.java && java CBCdecryptr
  */
 public class CBCdecryptr {
 
     public static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz";
-    
-    /* Method to convert txt files into String */
 
+    String cipherOne = new String();
+    String plainOne = new String();
+
+    char[] cipherKey = new char[26];
+
+    String cipherTwo = new String();
+    String plainTwo = new String();
+
+    int iv1, iv2;
+
+    CBCdecryptr(String cA, String pA, String cB, int iv1, int iv2) {
+        this.cipherOne = readTxt(cA);
+        this.plainOne = readTxt(pA);
+        this.cipherTwo = readTxt(cB);
+
+        this.iv1 = iv1;
+        this.iv2 = iv2;
+
+        this.cipherKey = keyMap(this.cipherOne, this.plainOne, this.iv1);
+        this.plainTwo = crackCipher(this.cipherTwo, this.cipherKey, this.iv2);
+    }
+    /* Method to convert txt files into String */
     private static String readTxt(String path) {
 
         String text = ""; 
@@ -25,6 +45,7 @@ public class CBCdecryptr {
         }
         return text; // Return txt String
     }
+    /* Method to set indexes for each subsequent block */
     private static int getIndex(String cipher, int letterPos) {
             int index = 0;
             for (int k=0; k < 26; k++)  {
@@ -35,76 +56,70 @@ public class CBCdecryptr {
             return index;
     }
 
-    public static void main(String[] args) {
-
-        // Set content of first two text files to strings
-        String cipherOne = ""; 
-        String plainOne = ""; 
-
-        cipherOne = readTxt("CBC_iv=2_c1.txt");
-        plainOne = readTxt("CBC_iv=2_p1.txt");
-        
-        int iv = 2;
-        int iv2 = 22;
-
-        // System.out.println(cipherOne.charAt(0));
-        // System.out.println(plainOne.charAt(0));
+    private static char[] keyMap(String ciphr, String plain, int iv) {
 
         char[] cipherKey = new char[26]; // store the key
-        int[] indexes = new int[plainOne.length()]; // Store index array in length of cipher
-                
-        for (int j=0; j < 26; j++)  {
-                if(plainOne.charAt(0) == ALPHABET.charAt(j)) { // When ALPHABET matches first letter
-                    cipherKey[j+iv] = cipherOne.charAt(0);  // Add to key with IV 
-                    indexes[0] = getIndex(cipherOne, 0); // Initialise index array
-                }
-        }
+        int[] indexes = new int[plain.length()]; // Store index array in length of cipher
 
-        for(int i=1; i < plainOne.length(); i++) { 
-                for (int j=0; j < 25; j++) {
-                        int temp;
-                        if(plainOne.charAt(i) == ALPHABET.charAt(j)) {
-                            
-                            if ((j + indexes[i-1]) >= 26){
-                                temp = (j + indexes[i-1]) % 26; 
-                            } else { temp = (j + indexes[i-1]); }
-                            
-                            cipherKey[temp] = cipherOne.charAt(i);
-                            indexes[i] = getIndex(cipherOne, i);
-                        }            
-                }
-        }
-
-        for (int j=0; j < 26; j++) 
-        {
-            System.out.println(ALPHABET.charAt(j) + " -> " + cipherKey[j]);
-        }
-
-        // Set content of second cipher as string
-        String cipherTwo = "";
-        cipherTwo = readTxt("CBC_iv=22_c2.txt");
-        char[] plainTwo = new char[cipherTwo.length()];
-        int[] indexesTwo = new int[cipherTwo.length()];
-
-        for (int j=0; j < 26; j++){
-            if(cipherTwo.charAt(0) == cipherKey[j]) { // When ALPHABET matches first letter
-                plainTwo[0] = ALPHABET.charAt(Math.floorMod(j-iv2, 26));
-                indexesTwo[0] = getIndex(cipherTwo, 0);
+        for (int j = 0; j < 26; j++) {
+            if (plain.charAt(0) == ALPHABET.charAt(j)) { // When ALPHABET matches first letter
+                cipherKey[j + iv] = ciphr.charAt(0); // Add to key with IV
+                indexes[0] = getIndex(ciphr, 0); // Initialise index array
             }
         }
 
-        for(int i=1; i < cipherTwo.length(); i++) {  
-                for (int j=0; j < 26; j++) {
-                        if(cipherTwo.charAt(i) == cipherKey[j]) {
-                            plainTwo[i] = ALPHABET.charAt(Math.floorMod((j-indexesTwo[i-1]), 26));
-                            indexesTwo[i] = getIndex(cipherTwo, i);
-                        }            
-                }
+        for (int i = 1; i < plain.length(); i++) {
+                   
+            for (int j = 0; j < 25; j++) {
+                        int temp;
+                        if (plain.charAt(i) == ALPHABET.charAt(j)) {
+
+                            if ((j + indexes[i - 1]) >= 26) {
+                                temp = (j + indexes[i - 1]) % 26;
+                            } else {
+                                temp = (j + indexes[i - 1]);
+                            }
+
+                            cipherKey[temp] = ciphr.charAt(i);
+                            indexes[i] = getIndex(ciphr, i);
+                        }
+                    }
+        }
+        return cipherKey;
+    }
+
+    private static String crackCipher(String ciphr, char[] key, int iv) {
+        
+        char[] plain = new char[ciphr.length()];
+        int[] indexes = new int[ciphr.length()];
+
+        for (int j = 0; j < 26; j++) {
+            if (ciphr.charAt(0) == key[j]) { // When ALPHABET matches first letter
+                plain[0] = ALPHABET.charAt(Math.floorMod(j - iv, 26));
+                indexes[0] = getIndex(ciphr, 0);
+            }
         }
 
-        // Print decrypted message
-        String plainTwoString = new String(plainTwo);
-        System.out.println(plainTwoString);
-
+        for (int i = 1; i < ciphr.length(); i++) {
+            for (int j = 0; j < 26; j++) {
+                if (ciphr.charAt(i) == key[j]) {
+                    plain[i] = ALPHABET.charAt(Math.floorMod((j - indexes[i - 1]), 26));
+                    indexes[i] = getIndex(ciphr, i);
+                }
+            }
+        }
+            String plainString = new String(plain);
+            return plainString;
     }
+
+    public void printCrackedKey() {
+        for (int j=0; j < 26; j++) {
+           System.out.println(ALPHABET.charAt(j) + " -> " + cipherKey[j]);
+        }
+    }
+
+    public String returnCrackedText() {
+        return plainTwo;
+    }
+
 }

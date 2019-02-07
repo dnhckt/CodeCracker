@@ -8,14 +8,44 @@ import java.nio.file.Paths;
 
      javac ECBdecryptr.java && java ECBdecryptr
  */
+
 public class ECBdecryptr {
 
     public static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz";
 
-    /* Method to map key values from known cipher and plain text */
+    String cipherOne = new String();
+    String plainOne = new String();
     
-    private static char[] keyMap(String ciphr, String plain)
-    {
+    char[] cipherKey =  new char[26];
+    
+    String cipherTwo = new String();
+    String plainTwo = new String();
+
+    ECBdecryptr(String cA, String pA, String cB) {
+            this.cipherOne = readTxt(cA);
+            this.plainOne = readTxt(pA);
+            this.cipherTwo = readTxt(cB);
+
+            this.cipherKey = keyMap(this.cipherOne, this.plainOne);
+            this.plainTwo = crackCipher(this.cipherTwo, this.cipherKey);  
+    }
+
+    /* Method to convert txt files into String */
+    private static String readTxt(String path) {
+
+        String text = "";
+        // Set string to specified txt.file
+        try {
+            text = new String(Files.readAllBytes(Paths.get(path)));
+        } catch (IOException error) {
+            error.printStackTrace(); // Print error to console log
+        }
+        return text; // Return txt String
+    }
+
+    /* Method to map key values from known cipher and plain text */
+    private static char[] keyMap(String ciphr, String plain) {
+
         char[] key = new char[26]; // Initialise key array
 
         // Map each letter of the key into cipherBet
@@ -33,60 +63,32 @@ public class ECBdecryptr {
         return key;
     }
 
-    /* Method to convert txt files into String */
+    private static String crackCipher(String ciphr, char[] key) {
 
-    private static String readTxt(String path) {
-
-        String text = ""; 
-        // Set string to specified txt.file 
-        try {
-                text = new String(Files.readAllBytes(Paths.get(path)));
-        } catch (IOException error) {
-            error.printStackTrace(); // Print error to console log
+        char[] plainTxt= new char[ciphr.length()];
+        // Convert second cipher into plainOne (Decrypt)
+        for (int i = 0; i < ciphr.length(); i++) { // Cycle through length of plainOne
+                for (int j = 0; j < 26; j++) {
+                    // When ALPHABET matches plainOne char, assign to key
+                    if (ciphr.charAt(i) == key[j]) {
+                            plainTxt[i] = ALPHABET.charAt(j);
+                    }
+                }
         }
-        return text; // Return txt String
+            String plainString = new String(plainTxt);
+            return plainString;
     }
 
-    public static void main(String[] args) {
-
-        // Set content of first two text files to strings
-        String cipherOne = ""; 
-        String plainOne = ""; 
-        cipherOne = readTxt("ECB_c1.txt");
-        plainOne = readTxt("ECB_p1.txt");
-
-        // Get key from text files
-        char[] cipherKey = keyMap(cipherOne, plainOne); 
-
-        // Set content of second cipher as string
-        String cipherTwo = "";
-        cipherTwo = readTxt("ECB_c2.txt");
-        
-        // To store decrypted message 
-        char[] plainTwo = new char[cipherTwo.length()]; 
-        
-        // Convert second cipher into plainOne (Decrypt)
-        for (int i=0; i < cipherTwo.length(); i++) // Cycle through length of plainOne
-        {
-            for (int j=0; j < 26; j++) 
-            {
-                // When ALPHABET matches plainOne char, assign to key
-                if (cipherTwo.charAt(i) == cipherKey[j])
-                {
-                    plainTwo[i] = ALPHABET.charAt(j);
-                }
-            }
-        }
-
-        //  Print ECB Key
-        for (int j=0; j < 26; j++)
-        {
+    public void printCrackedKey() {
+        // Print ECB Key
+        for (int j = 0; j < 26; j++) {
             System.out.println(ALPHABET.charAt(j) + " -> " + cipherKey[j]);
         }
 
-        // Print decrypted message
-        String plainTwoString = new String(plainTwo);
-        System.out.println(plainTwoString);
+    }
 
-    }   
+    public String returnCrackedText() {
+        return plainTwo;
+    }
+
 }
