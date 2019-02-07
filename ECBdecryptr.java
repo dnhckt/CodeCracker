@@ -78,12 +78,15 @@ public class ECBdecryptr {
             }
         }
 
-        // Convert chars to string and print decrypted message
-        String plainTwoString = new String(plainTwo);
-        System.out.println(plainTwoString);
+        //  Print ECB Key
         for (int j=0; j < 26; j++)
         {
             System.out.println(ALPHABET.charAt(j) + " -> " + cipherKey[j]);
         }
+
+        // Print decrypted message
+        String plainTwoString = new String(plainTwo);
+        System.out.println(plainTwoString);
+
     }   
 }
